@@ -1,11 +1,13 @@
-
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
 void LUFactorization() {
-    int n = 5; // Minimum of 5 equations
+    int n;
+    cout << "Enter the number of equations (n x n matrix): ";
+    cin >> n;
+
     vector<vector<double>> A(n, vector<double>(n));
     vector<vector<double>> L(n, vector<double>(n, 0));  // Lower triangular matrix
     vector<vector<double>> U(n, vector<double>(n, 0));  // Upper triangular matrix
@@ -13,7 +15,7 @@ void LUFactorization() {
     vector<double> x(n), y(n);  // Solution vectors
 
     // Input the coefficients of matrix A
-    cout << "Enter the coefficients of a " << n << "x" << n << " matrix A:\n";
+    cout << "Enter the coefficients of the " << n << "x" << n << " matrix A:\n";
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             cin >> A[i][j];
@@ -50,10 +52,6 @@ void LUFactorization() {
             }
         }
     }
-
-
-
-
 
     // Forward substitution: Solve L * y = b
     for (int i = 0; i < n; i++) {
