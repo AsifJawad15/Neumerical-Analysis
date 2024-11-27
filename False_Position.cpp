@@ -17,39 +17,27 @@ double evaluatePolynomial(const vector<double>& coeffs, double x)
     return result;
 }
 
-// False Position (Regula Falsi) Method to find a root in a given interval [a, b]
-double falsePositionMethod(const vector<double>& coeffs, double a, double b, double tolerance)
+// Bisection Method to find a root in a given interval [a, b]
+double bisectionMethod(const vector<double>& coeffs, double a, double b, double tolerance)
 {
-    double fa = evaluatePolynomial(coeffs, a);
-    double fb = evaluatePolynomial(coeffs, b);
-    double c;  // This will store the root approximation
-
-    if (fa * fb >= 0) {
-        cout << "The function must have opposite signs at a and b for the false position method to work.\n";
-        return NAN; // Not a number to indicate invalid input
-    }
-
-    while (fabs(b - a) >= tolerance)
+    double mid;
+    while ((b - a) >= tolerance)
     {
-        // Calculate the position using the false position formula
-        c = (a * fb - b * fa) / (fb - fa);
-        double fc = evaluatePolynomial(coeffs, c);
+        mid = (a + b) / 2;
+        double f_a = evaluatePolynomial(coeffs, a);
+        double f_mid = evaluatePolynomial(coeffs, mid);
 
-        // Check if c is a root
-        if (fabs(fc) < tolerance)
-            return c;
+        // Check if midpoint is a root
+        if (fabs(f_mid) < tolerance)
+            return mid;
 
-        // Update interval
-        if (fa * fc < 0) {
-            b = c;
-            fb = fc;  // Update f(b)
-        } else {
-            a = c;
-            fa = fc;  // Update f(a)
-        }
+        // Decide the side to repeat the bisection
+        if (f_a * f_mid < 0)
+            b = mid;
+        else
+            a = mid;
     }
-
-    return c;  // Return the root approximation
+    return (a + b) / 2;  // Return the midpoint as an approximation
 }
 
 int main()
@@ -71,7 +59,8 @@ int main()
     cin >> a;
     cout << "b = ";
     cin >> b;
-    double tolerance = 0.0000001;
+    double tolerance=0.0000001;
+
 
     // Step size to search for potential root intervals
     double step = 0.01;  // Smaller step size to improve precision and capture roots accurately
@@ -86,9 +75,8 @@ int main()
         // If there's a sign change between f(i) and f(i + step), there's a root in this interval
         if (f_i * f_next < 0)
         {
-            double root = falsePositionMethod(coeffs, i, i + step, tolerance);
-            if (!isnan(root))  // Only add valid roots
-                roots.push_back(root);
+            double root = bisectionMethod(coeffs, i, i + step, tolerance);
+            roots.push_back(root);
         }
     }
 
@@ -105,7 +93,7 @@ int main()
         if (roots.size() < degree)
         {
             cout << "\nWarning: Not all roots were found in the interval [" << a << ", " << b << "].\n";
-            cout << "There might be more roots outside this interval, or consider increasing the range.\n";
+            cout << "There might be more roots outside this interval, or consider increasing the range(but this may slow the program potentially!!)\n";
         }
     }
     else
@@ -115,4 +103,3 @@ int main()
 
     return 0;
 }
-
