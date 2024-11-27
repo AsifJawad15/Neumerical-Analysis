@@ -2,6 +2,7 @@
 #include <cmath>
 #include <vector>
 #include <iomanip>
+#include <algorithm> // For sort and unique
 
 using namespace std;
 
@@ -37,7 +38,7 @@ double bisectionMethod(const vector<double>& coeffs, double a, double b, double 
         else
             a = mid;
     }
-    return (a + b) / 2;  // Return the midpoint as an approximation
+    return (a + b) / 2; // Return the midpoint as an approximation
 }
 
 int main()
@@ -46,7 +47,7 @@ int main()
     cout << "Enter the degree of the polynomial: ";
     cin >> degree;
 
-    vector<double> coeffs(degree + 1);  // Coefficients of the polynomial
+    vector<double> coeffs(degree + 1); // Coefficients of the polynomial
     cout << "Enter the coefficients (from highest degree to constant term):\n";
     for (int i = 0; i <= degree; i++)
     {
@@ -59,11 +60,10 @@ int main()
     cin >> a;
     cout << "b = ";
     cin >> b;
-    double tolerance=0.0000001;
+    double tolerance = 0.0000001;
 
-
-    // Step size to search for potential root intervals
-    double step = 0.01;  // Smaller step size to improve precision and capture roots accurately
+    // Reduced step size for better accuracy
+    double step = 0.001;
 
     // Loop over the interval in small steps to find potential roots
     vector<double> roots;
@@ -72,13 +72,23 @@ int main()
         double f_i = evaluatePolynomial(coeffs, i);
         double f_next = evaluatePolynomial(coeffs, i + step);
 
-        // If there's a sign change between f(i) and f(i + step), there's a root in this interval
-        if (f_i * f_next < 0)
+        // Check for roots at boundaries or sign change
+        if (fabs(f_i) < tolerance) // Check if f(i) is approximately zero
+        {
+            roots.push_back(i);
+        }
+        else if (f_i * f_next < 0) // Check for sign change
         {
             double root = bisectionMethod(coeffs, i, i + step, tolerance);
             roots.push_back(root);
         }
     }
+
+    // Remove duplicate roots
+    sort(roots.begin(), roots.end()); // Sort roots
+    roots.erase(unique(roots.begin(), roots.end(),
+        [tolerance](double a, double b) { return fabs(a - b) < tolerance; }),
+        roots.end()); // Remove duplicates
 
     // Output the found roots
     if (!roots.empty())
@@ -93,7 +103,7 @@ int main()
         if (roots.size() < degree)
         {
             cout << "\nWarning: Not all roots were found in the interval [" << a << ", " << b << "].\n";
-            cout << "There might be more roots outside this interval, or consider increasing the range(but this may slow the program potentially!!)\n";
+            cout << "There might be more roots outside this interval, or consider increasing the range (but this may slow the program potentially!!)\n";
         }
     }
     else
