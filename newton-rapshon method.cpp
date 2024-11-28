@@ -25,6 +25,16 @@ vector<double> derivative(const vector<double>& coeffs) {
     return derivCoeffs;
 }
 
+// Perform synthetic division
+vector<double> syntheticDivision(const vector<double>& coeffs, double root) {
+    vector<double> newCoeffs(coeffs.size() - 1);
+    newCoeffs[0] = coeffs[0];
+    for (size_t i = 1; i < newCoeffs.size(); ++i) {
+        newCoeffs[i] = coeffs[i] + root * newCoeffs[i - 1];
+    }
+    return newCoeffs;
+}
+
 int main() {
     int degree;
 
@@ -40,47 +50,57 @@ int main() {
         cin >> coeffs[i];
     }
 
-    // Calculate the derivative coefficients
-    vector<double> derivCoeffs = derivative(coeffs);
-
-    double x0, tolerance;
-
-    // User input for initial guess and tolerance
-    cout << "Enter initial guess: ";
-    cin >> x0;
-
+    double tolerance;
     cout << "Enter tolerance: ";
     cin >> tolerance;
 
     cout << fixed << setprecision(6);
 
-    // Newton-Raphson Iteration
-    for (int i = 1; i <= 20; ++i) {
-        double f_x0 = evaluatePolynomial(coeffs, x0);
-        double df_x0 = evaluatePolynomial(derivCoeffs, x0);
+    vector<double> roots;
 
-        // Check if derivative is zero (to avoid division by zero)
-        if (df_x0 == 0) {
-            cout << "Derivative is zero. Stopping computation." << endl;
-            break;
+    while (coeffs.size() > 1) {
+        double x0;
+        cout << "Enter initial guess: ";
+        cin >> x0;
+
+        vector<double> derivCoeffs = derivative(coeffs);
+        bool converged = false;
+        for (int i = 1; i <= 20; ++i) {
+            double f_x0 = evaluatePolynomial(coeffs, x0);
+            double df_x0 = evaluatePolynomial(derivCoeffs, x0);
+
+            // Check if derivative is zero (to avoid division by zero)
+            if (df_x0 == 0) {
+                cout << "Derivative is zero. Stopping computation for this guess." << endl;
+                break;
+            }
+
+            // Newton-Raphson formula: x1 = x0 - f(x0) / f'(x0)
+            double x1 = x0 - f_x0 / df_x0;
+
+            // Check for convergence
+            if (fabs(x1 - x0) < tolerance) {
+                roots.push_back(x1);
+                cout << "Root found: " << x1 << " after " << i << " iterations." << endl;
+                coeffs = syntheticDivision(coeffs, x1);
+                converged = true;
+                break;
+            }
+
+            // Update x0 for the next iteration
+            x0 = x1;
         }
 
-        // Newton-Raphson formula: x1 = x0 - f(x0) / f'(x0)
-        double x1 = x0 - f_x0 / df_x0;
-
-        // Print iteration details
-        cout << "Iteration " << i << ": x = " << x1
-             << ", f(x) = " << f_x0
-             << ", |x1 - x0| = " << fabs(x1 - x0) << endl;
-
-        // Check for convergence
-        if (fabs(x1 - x0) < tolerance) {
-            cout << "Converged to " << x1 << " after " << i << " iterations." << endl;
+        if (!converged) {
+            cout << "Failed to converge for the current initial guess." << endl;
             break;
         }
+    }
 
-        // Update x0 for the next iteration
-        x0 = x1;
+    // Display all roots
+    cout << "\nAll roots found:" << endl;
+    for (const auto& root : roots) {
+        cout << root << endl;
     }
 
     return 0;
