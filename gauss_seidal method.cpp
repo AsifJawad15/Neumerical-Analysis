@@ -1,50 +1,98 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// Function to perform Gauss-Seidel iterations
+void gaussSeidel(const vector<vector<double>>& coefficients, const vector<double>& constants, vector<double>& vars, double tolerance) {
+    int n = coefficients.size();  // Number of variables/equations
+    vector<double> prevVars(n);   // Store previous variable values
+    int step = 1;                 // Iteration counter
 
-
-#define f1(x, y, z) (85 - 6 * y + z) / 27
-#define f2(x, y, z) (72 - 6 * x - 3 * z) / 15
-#define f3(x, y, z) (110 - x - y) / 54
-
-int main() {
-
-
-    float e;
-    cin >> e;  // Reading the error tolerance
-
-    float x0 = 0, y0 = 0, z0 = 0, x1, y1, z1, e1, e2, e3;
-    int step = 1;
-
-    // Setting up output formatting for alignment
     cout << fixed << setprecision(6);
+    cout << setw(5) << "Step";
+    for (int i = 0; i < n; ++i)
+        cout << setw(12) << "x" << i + 1;
+    for (int i = 0; i < n; ++i)
+        cout << setw(12) << "e" << i + 1;
+    cout << endl;
 
-    // Print the header with column alignment
-    cout << setw(5) << "Step" << setw(12) << "x1" << setw(12) << "y1"
-         << setw(12) << "z1" << setw(12) << "e1" << setw(12) << "e2" << setw(12) << "e3" << endl;
+    while (true) {
+        bool converged = true;
 
-    do {
-        x1 = f1(x0, y0, z0);
-        y1 = f2(x1, y0, z0);
-        z1 = f3(x1, y1, z0);
+        // Save the current variable values for error calculation
+        prevVars = vars;
+
+        // Perform Gauss-Seidel update
+        for (int i = 0; i < n; ++i) {
+            double sum = constants[i];
+            for (int j = 0; j < n; ++j) {
+                if (j != i) {
+                    sum -= coefficients[i][j] * vars[j];
+                }
+            }
+            vars[i] = sum / coefficients[i][i];
+        }
 
         // Calculate errors
-        e1 = abs(x1 - x0);
-        e2 = abs(y1 - y0);
-        e3 = abs(z1 - z0);
+        vector<double> errors(n);
+        for (int i = 0; i < n; ++i) {
+            errors[i] = fabs(vars[i] - prevVars[i]);
+            if (errors[i] > tolerance) {
+                converged = false;
+            }
+        }
 
-        // Print the current step, values, and errors with aligned columns
-        cout << setw(5) << step << setw(12) << x1 << setw(12) << y1 << setw(12) << z1
-             << setw(12) << e1 << setw(12) << e2 << setw(12) << e3 << endl;
+        // Print the current step, values, and errors
+        cout << setw(5) << step;
+        for (double v : vars)
+            cout << setw(12) << v;
+        for (double e : errors)
+            cout << setw(12) << e;
+        cout << endl;
 
-        // Update the old values with new ones for the next iteration
-        x0 = x1;
-        y0 = y1;
-        z0 = z1;
+        // Check for convergence
+        if (converged)
+            break;
+
         step++;
-    } while (e1 > e || e2 > e || e3 > e);  // Continue until all errors are within the tolerance
+    }
 
-    cout << endl << "Solution: x = " << x1 << ", y = " << y1 << ", z = " << z1 << endl;
+    // Print the final solution
+    cout << endl << "Solution:";
+    for (int i = 0; i < n; ++i) {
+        cout << " x" << i + 1 << " = " << vars[i];
+        if (i != n - 1) cout << ",";
+    }
+    cout << endl;
+}
+
+int main() {
+    int n;  // Number of variables/equations
+    cout << "Enter the number of variables (or equations): ";
+    cin >> n;
+
+    // Input the coefficients and constants for each equation
+    vector<vector<double>> coefficients(n, vector<double>(n));
+    vector<double> constants(n);
+    cout << "Enter the coefficients and constants for each equation:\n";
+    for (int i = 0; i < n; ++i) {
+        cout << "Equation " << i + 1 << ":\n";
+        for (int j = 0; j < n; ++j) {
+            cout << "Coefficient a" << i + 1 << j + 1 << ": ";
+            cin >> coefficients[i][j];
+        }
+        cout << "Constant b" << i + 1 << ": ";
+        cin >> constants[i];
+    }
+
+    double tolerance;
+    cout << "Enter the error tolerance: ";
+    cin >> tolerance;
+
+    // Initial guesses for the variables
+    vector<double> vars(n, 0.0);  // x0, y0, z0...
+
+    // Perform Gauss-Seidel iteration
+    gaussSeidel(coefficients, constants, vars, tolerance);
 
     return 0;
 }
